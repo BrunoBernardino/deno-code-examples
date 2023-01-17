@@ -61,7 +61,7 @@
   }
 
   .page {
-    @apply max-w-2xl mx-auto bg-slate-50 px-6 py-8 min-h-screen;
+    @apply max-w-2xl mx-auto bg-slate-50 px-8 py-8 min-h-screen;
   }
 
   .button {

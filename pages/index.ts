@@ -29,9 +29,9 @@ function get({ request, match, user, session }: RequestHandlerParams) {
       <h1 class="text-4xl mb-6 text-center">
         Welcome to Deno Code Examples!
       </h1>
-      <p class="text-center">
-        You seem to be logged out at the moment, so click one of the buttons, have some fun.</p>
-        <p class="text-center mt-2 mb-6">Don't worry. All data is deleted every day.</p>
+      <p class="text-center mt-2 mb-6">If you don't know what this is all about, it's a working <span class="font-bold">Deno app</span> with many things required in production apps nowadays, like user authentication (via Google and GitHub), filling forms, filling PDF forms, sending emails (with attachments), and uploading files to AWS S3. You can <a href="https://github.com/BrunoBernardino/deno-code-examples" class="hover:decoration-sky-700 hover:text-sky-700 underline">read more about it in GitHub</a>.</p>
+      <p class="text-center mt-2 mb-6">You seem to be logged out at the moment, so click one of the buttons, have some fun.</p>
+      <p class="text-center mt-2 mb-6">Don't worry about your data. Scopes are minimal and all data is deleted every day.<br />You can confirm in the code.</p>
       <section class="text-center flex justify-center grow-0 my-6">
         <a class="my-2 mx-2 button" href="${googleOauthUrl}">
           Login or Signup with Google
