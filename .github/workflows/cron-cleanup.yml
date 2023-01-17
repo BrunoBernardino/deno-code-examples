@@ -1,0 +1,30 @@
+name: "Cron: Cleanup"
+
+on:
+  workflow_dispatch:
+  schedule:
+    # At 02:03 every day.
+    - cron: '3 2 * * *'
+
+jobs:
+  cron-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.29.1
+      - env:
+          POSTGRESQL_HOST: ${{ secrets.POSTGRESQL_HOST }}
+          POSTGRESQL_USER: ${{ secrets.POSTGRESQL_USER }}
+          POSTGRESQL_PASSWORD: ${{ secrets.POSTGRESQL_PASSWORD }}
+          POSTGRESQL_DBNAME: ${{ secrets.POSTGRESQL_DBNAME }}
+          POSTGRESQL_PORT: ${{ secrets.POSTGRESQL_PORT }}
+          POSTGRESQL_CAFILE: ${{ secrets.POSTGRESQL_CAFILE }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_DBNAME: ${{ secrets.REDIS_DBNAME }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        run: |
+          make crons/cleanup

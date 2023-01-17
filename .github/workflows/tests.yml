@@ -1,0 +1,30 @@
+name: Run Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.29.1
+      - run: docker-compose pull
+      - uses: jpribyl/action-docker-layer-caching@v0.1
+        continue-on-error: true
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Check tailwind production changes
+        run: |
+          make build-tailwind
+          if [ $(git status --porcelain | wc -l) -ne "0" ]; then
+            echo "Tailwind production changes detected. Run `make build-tailwind` locally and commit + push."
+            exit 1
+          fi
+      - run: |
+          cp .env.sample .env
+          docker-compose up -d
+          make test

@@ -1,0 +1,40 @@
+services:
+  postgresql:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=fake
+      - POSTGRES_DB=deno
+    restart: on-failure
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  redis:
+    image: redis:7.0.6
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_USERNAME=default
+      - REDIS_PASSWORD=fake
+      - REDIS_NAME=deno
+    restart: on-failure
+    # command: redis-server --name "$REDIS_NAME" -d redis sh -c 'exec redis-server --requirepass "$REDIS_PASSWORD"'
+    volumes:
+      - redisdata:/var/lib/redis
+    ports:
+      - 6379:6379
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local

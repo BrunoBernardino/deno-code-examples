@@ -1,0 +1,27 @@
+/* Base/Custom */
+
+#loading {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  z-index: 10000;
+  background: transparent;
+  transition: all 200ms ease-in-out;
+  visibility: visible;
+  opacity: 1;
+
+  svg path, svg rect {
+    fill: rgba(255, 255, 255, 0.8);
+    filter: drop-shadow( 0 0 5px #0F172A);
+  }
+
+  &.hide {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

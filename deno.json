@@ -1,0 +1,29 @@
+{
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true,
+      "proseWrap": "preserve"
+    },
+    "files": {
+      "exclude": ["./public/css/tailwind.css"]
+    }
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any", "no-window-prefix"]
+    }
+  },
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "deno.ns"
+    ]
+  },
+  "importMap": "./import_map.json",
+  "lock": false
+}

@@ -1,0 +1,17 @@
+/* Base/Custom */
+
+:root {
+  --color-sky-800: #075885;
+}
+
+a {
+  transition: 60ms all ease-in;
+}
+
+.hidden {
+  display: none;
+}
+
+#menu-logo:hover {
+  filter: drop-shadow( 0 0 5px var(--color-sky-800));
+}
