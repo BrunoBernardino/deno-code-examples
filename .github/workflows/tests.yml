@@ -12,7 +12,7 @@ jobs:
         with:
           deno-version: v1.29.1
       - run: docker-compose pull
-      - uses: jpribyl/action-docker-layer-caching@v0.1
+      - uses: jpribyl/action-docker-layer-caching@v0.1.1
         continue-on-error: true
       - uses: actions/setup-node@v3
         with:
