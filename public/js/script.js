@@ -11,7 +11,9 @@
 
       const isFile = anchor.attributes.getNamedItem('href')?.value.startsWith('/file/');
 
-      if (isAppAction) {
+      const isExternal = anchor.attributes.getNamedItem('href')?.value.startsWith('https://');
+
+      if (isAppAction || isExternal) {
         return;
       }
 

@@ -77,7 +77,7 @@
   }
 
   .input-field {
-    @apply block w-full rounded-md bg-slate-200 border-transparent focus:border-slate-500 focus:bg-white focus:ring-0 !important;
+    @apply block w-full p-2 rounded-md bg-slate-200 border-transparent focus:border-slate-500 focus:bg-white focus:ring-0 !important;
   }
 
   .input-field:required:invalid {

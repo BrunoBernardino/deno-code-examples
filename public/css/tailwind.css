@@ -716,6 +716,7 @@ section.table-wrapper {
   border-color: transparent !important;
   --tw-bg-opacity: 1 !important;
   background-color: rgb(226 232 240 / var(--tw-bg-opacity)) !important;
+  padding: 0.5rem !important;
 }
 
 .input-field:focus {
