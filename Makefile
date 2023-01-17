@@ -16,7 +16,7 @@ test:
 build-tailwind:
 	@# NOTE: Ideally we'd run this via deno, but it's not fully supported yet, so we keep a reference of the relevant future command here.
 	@# deno run --unstable --allow-env --allow-read --allow-write=public/css npm:tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind.css
-	npx tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind.css
+	npx tailwindcss@3.2.4 -i ./public/css/tailwind-input.css -o ./public/css/tailwind.css
 
 .PHONY: migrate-db
 migrate-db:
