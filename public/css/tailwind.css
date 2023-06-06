@@ -1321,14 +1321,14 @@ section.table-wrapper {
   transition-duration: 150ms;
 }
 
-.hover\:border-b-slate-400:hover {
+.hover\:border-b-sky-200:hover {
   --tw-border-opacity: 1;
-  border-bottom-color: rgb(148 163 184 / var(--tw-border-opacity));
+  border-bottom-color: rgb(186 230 253 / var(--tw-border-opacity));
 }
 
-.hover\:bg-slate-200:hover {
+.hover\:bg-sky-50:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(226 232 240 / var(--tw-bg-opacity));
+  background-color: rgb(240 249 255 / var(--tw-bg-opacity));
 }
 
 .hover\:bg-slate-900:hover {
