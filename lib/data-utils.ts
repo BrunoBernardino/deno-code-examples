@@ -42,7 +42,7 @@ export async function getFilledFormsForUser(userId: string) {
   const filledFormsCache = new SimpleCache(`filled-forms:${userId}`);
 
   try {
-    const cachedFormsJson = (await filledFormsCache.get());
+    const cachedFormsJson = await filledFormsCache.get();
 
     return JSON.parse(cachedFormsJson) as FilledForm[];
   } catch (_error) {

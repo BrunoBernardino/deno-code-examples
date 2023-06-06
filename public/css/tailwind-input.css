@@ -103,4 +103,48 @@
   .notification-success h3 {
     @apply text-4xl text-green-600 mb-6;
   }
+
+  .article h1 {
+    @apply text-4xl mb-6 text-center font-bold;
+  }
+
+  .article h4 {
+    @apply text-base mb-1 text-center font-medium text-slate-600;
+  }
+
+  .article a {
+    @apply decoration-sky-700 underline text-sky-700 hover:decoration-slate-800 hover:text-slate-800;
+  }
+
+  .article aside {
+    @apply text-sm mb-6 text-right font-light;
+  }
+
+  .article p, .article li {
+    @apply mx-auto mt-0 mb-7 text-base;
+  }
+
+  .article ul, .article ol {
+    @apply mb-7;
+  }
+
+  .article li {
+    @apply list-disc list-inside ml-10 mb-1;
+  }
+
+  .article ol li {
+    @apply list-decimal;
+  }
+
+  .article p strong {
+    @apply font-bold;
+  }
+
+  .article p em {
+    @apply italic;
+  }
+
+  .article img {
+    @apply max-w-full;
+  }
 }

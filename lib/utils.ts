@@ -2,6 +2,7 @@ import 'std/dotenv/load.ts';
 import { emit } from 'https://deno.land/x/emit@0.10.0/mod.ts';
 import sass from 'https://deno.land/x/denosass@1.0.6/mod.ts';
 import { serveFile } from 'std/http/file_server.ts';
+import { extract } from 'std/front_matter/any.ts';
 
 import menu from './components/menu.ts';
 import loading from './components/loading.ts';
@@ -47,6 +48,11 @@ function basicLayout(
       <title>${title}</title>
       <meta name="description" content="${description || defaultDescription}">
       <meta name="author" content="Bruno Bernardino">
+      <meta property="og:title" content="${title}" />
+
+      <link rel="alternate" type="application/rss+xml" href="/rss.xml" />
+      <link rel="alternate" type="application/atom+xml" href="/atom.xml" />
+      <link rel="alternate" type="application/feed+json" href="/feed.json" />
 
       <link rel="icon" href="/public/images/favicon.png" type="image/png">
       <link rel="apple-touch-icon" href="/public/images/favicon.png">
@@ -189,4 +195,110 @@ export function slugify(name: string) {
     .replace(/\s+/g, '-'); // replace spaces
 
   return slug;
+}
+
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export function formatDate(date: Date) {
+  const month = date.getMonth();
+  const year = date.getFullYear();
+
+  const fullMonth = months[month];
+
+  return `${fullMonth}, ${year}`;
+}
+
+function addLeadingZero(number: number) {
+  if (number < 10) {
+    return `0${number}`;
+  }
+
+  return number.toString();
+}
+
+export function buildRFC822Date(dateString: string) {
+  const dayStrings = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthStrings = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const timeStamp = Date.parse(dateString);
+  const date = new Date(timeStamp);
+
+  const day = dayStrings[date.getDay()];
+  const dayNumber = addLeadingZero(date.getUTCDate());
+  const month = monthStrings[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+  const time = `${addLeadingZero(date.getUTCHours())}:${addLeadingZero(date.getUTCMinutes())}:00`;
+
+  return `${day}, ${dayNumber} ${month} ${year} ${time} +0000`;
+}
+
+export interface Article {
+  slug: string;
+  date: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  pinned?: boolean;
+}
+
+export async function getAllBlogArticles() {
+  const today = new Date().toISOString().substring(0, 10);
+  const articlesDirectoryPath = `${Deno.cwd()}/articles`;
+  const articlesDirectory = Deno.readDir(articlesDirectoryPath);
+
+  const articles: Article[] = [];
+
+  for await (const articleFile of articlesDirectory) {
+    if (!articleFile.isFile || !articleFile.name.endsWith('.md')) {
+      continue;
+    }
+
+    const slug = articleFile.name.replace('.md', '');
+
+    const articleFileContent = await Deno.readTextFile(`${articlesDirectoryPath}/${articleFile.name}`);
+    const { attrs, body } = extract<{ title: string; subtitle: string; date: string; pinned?: boolean }>(
+      articleFileContent,
+    );
+
+    // Skip if it's for a future date
+    if (attrs.date > today) {
+      continue;
+    }
+
+    articles.push({
+      slug,
+      title: attrs.title,
+      date: attrs.date,
+      subtitle: attrs.subtitle,
+      description: body,
+      pinned: attrs.pinned,
+    });
+  }
+
+  articles.sort((articleA, articleB) => {
+    if (articleA.date < articleB.date) {
+      return 1;
+    }
+
+    if (articleA.date > articleB.date) {
+      return -1;
+    }
+
+    return 0;
+  });
+
+  return articles;
 }

@@ -1,6 +1,6 @@
 services:
   postgresql:
-    image: postgres:14
+    image: postgres:15
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=fake
@@ -16,7 +16,7 @@ services:
         hard: -1
 
   redis:
-    image: redis:7.0.6
+    image: redis:7.0.11
     environment:
       - REDIS_REPLICATION_MODE=master
       - REDIS_USERNAME=default

@@ -1,6 +1,17 @@
 import { serveFile } from 'std/http/file_server.ts';
+import { parse } from 'std/datetime/mod.ts';
+import { renderMarkdown } from 'https://deno.land/x/markdown_renderer@0.1.3/mod.ts';
 
-import { baseUrl, html, serveFileWithSass, serveFileWithTs } from '/lib/utils.ts';
+import {
+  baseUrl,
+  buildRFC822Date,
+  defaultDescription,
+  defaultTitle,
+  getAllBlogArticles,
+  html,
+  serveFileWithSass,
+  serveFileWithTs,
+} from '/lib/utils.ts';
 import { getDataFromRequest } from '/lib/auth.ts';
 import { Page } from '/lib/page.ts';
 
@@ -12,6 +23,8 @@ import oauthGoogleCallbackPage from '/pages/oauth/google/callback.ts';
 import oauthGithubCallbackPage from '/pages/oauth/github/callback.ts';
 import fillAFormPage from '/pages/fill-a-form.ts';
 import filePage from '/pages/file.ts';
+import blogPage from '/pages/blog/index.ts';
+import blogArticlePage from '/pages/blog/article.ts';
 
 const pages = {
   index: indexPage,
@@ -21,7 +34,11 @@ const pages = {
   oauthGithubCallback: oauthGithubCallbackPage,
   fillAForm: fillAFormPage,
   file: filePage,
+  blog: blogPage,
+  blogArticle: blogArticlePage,
 };
+
+const articles = await getAllBlogArticles();
 
 export interface Route {
   pattern: URLPattern;
@@ -35,7 +52,7 @@ interface Routes {
   [routeKey: string]: Route;
 }
 
-function createPageRouteHandler(id: string, pathname: string) {
+function createPageRouteHandler(id: keyof typeof pages, pathname: string) {
   return {
     pattern: new URLPattern({ pathname }),
     handler: async (request: Request, match: URLPatternResult) => {
@@ -43,7 +60,6 @@ function createPageRouteHandler(id: string, pathname: string) {
         // NOTE: Use this instead once https://github.com/denoland/deploy_feedback/issues/1 is closed
         // const page = await import(`/pages/${id}.ts`);
 
-        // @ts-ignore necessary because of the comment above
         const page = pages[id];
 
         const { get, post, patch, delete: deleteAction } = page as Page;
@@ -92,7 +108,7 @@ function createPageRouteHandler(id: string, pathname: string) {
 const routes: Routes = {
   sitemap: {
     pattern: new URLPattern({ pathname: '/sitemap.xml' }),
-    handler: (_request) => {
+    handler: () => {
       const pages = [
         '/',
       ];
@@ -116,6 +132,15 @@ const routes: Routes = {
   `
         ).join('')
       }
+  ${
+        articles.map((article) => `
+    <url>
+      <loc>${baseUrl}/blog/${article.slug}</loc>
+      <lastmod>${parse(article.date, 'yyyy-MM-dd').toISOString()}</lastmod>
+      <priority>0.9</priority>
+    </url>
+  `).join('')
+      }
 </urlset>
 `;
 
@@ -124,6 +149,129 @@ const routes: Routes = {
       return new Response(sitemapContent, {
         headers: {
           'content-type': 'application/xml; charset=utf-8',
+          'cache-control': `max-age=${oneDayInSeconds}, public`,
+        },
+      });
+    },
+  },
+  rss: {
+    pattern: new URLPattern({ pathname: '/rss.xml' }),
+    handler: (_request) => {
+      const feedContent = `<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>${defaultTitle}</title>
+		<link>${baseUrl}</link>
+    <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
+		<description>${defaultDescription}</description>
+		<lastBuildDate>${buildRFC822Date(articles[0].date)}</lastBuildDate>
+		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+		<generator>${baseUrl}</generator>
+		<copyright>I don't care what you do with this. Take it.</copyright>
+  ${
+        articles.map((article) => `
+    <item>
+			<title>
+				<![CDATA[${article.title}]]>
+			</title>
+			<link>${baseUrl}/blog/${article.slug}</link>
+			<guid>${baseUrl}/blog/${article.slug}</guid>
+			<pubDate>${buildRFC822Date(article.date)}</pubDate>
+			<description>
+				<![CDATA[${renderMarkdown(article.description)}]]>
+			</description>
+		</item>
+  `).join('')
+      }
+</channel>
+</rss>
+`;
+
+      const oneDayInSeconds = 24 * 60 * 60;
+
+      return new Response(feedContent, {
+        headers: {
+          'content-type': 'application/xml; charset=utf-8',
+          'cache-control': `max-age=${oneDayInSeconds}, public`,
+        },
+      });
+    },
+  },
+  atom: {
+    pattern: new URLPattern({ pathname: '/atom.xml' }),
+    handler: (_request) => {
+      const feedContent = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:atom="http://www.w3.org/2005/Atom">
+	<id>${baseUrl}/</id>
+	<title>${defaultTitle}</title>
+	<updated>${parse(articles[0].date, 'yyyy-MM-dd').toISOString()}</updated>
+	<generator>${baseUrl}</generator>
+  <atom:link href="${baseUrl}/atom.xml" rel="self" type="application/atom+xml" />
+	<author>
+		<name>Bruno Bernardino</name>
+		<uri>${baseUrl}</uri>
+	</author>
+	<link rel="alternate" href="${baseUrl}"/>
+	<subtitle>${defaultDescription}</subtitle>
+	<rights>I don't care what you do with this. Take it.</rights>
+  ${
+        articles.map((article) => `
+    <entry>
+			<title type="html">
+				<![CDATA[${article.title}]]>
+			</title>
+      <id>${baseUrl}/blog/${article.slug}</id>
+			<link href="${baseUrl}/blog/${article.slug}" />
+			<updated>${parse(article.date, 'yyyy-MM-dd').toISOString()}</updated>
+			<content type="html">
+				<![CDATA[${renderMarkdown(article.description)}]]>
+			</content>
+		</entry>
+  `).join('')
+      }
+</feed>
+`;
+
+      const oneDayInSeconds = 24 * 60 * 60;
+
+      return new Response(feedContent, {
+        headers: {
+          'content-type': 'application/xml; charset=utf-8',
+          'cache-control': `max-age=${oneDayInSeconds}, public`,
+        },
+      });
+    },
+  },
+  feed: {
+    pattern: new URLPattern({ pathname: '/feed.json' }),
+    handler: (_request) => {
+      const feed = {
+        version: 'https://jsonfeed.org/version/1.1',
+        title: defaultTitle,
+        home_page_url: baseUrl,
+        description: defaultDescription,
+        authors: [{
+          name: 'Bruno Bernardino',
+          url: baseUrl,
+        }],
+        language: 'en',
+        items: articles.map((article) => ({
+          id: `${baseUrl}/blog/${article.slug}`,
+          url: `${baseUrl}/blog/${article.slug}`,
+          title: article.title,
+          content_text: article.description,
+          content_html: renderMarkdown(article.description),
+          summary: article.subtitle,
+          date_modified: parse(article.date, 'yyyy-MM-dd').toISOString(),
+          date_published: parse(article.date, 'yyyy-MM-dd').toISOString(),
+        })),
+      };
+
+      const oneDayInSeconds = 24 * 60 * 60;
+
+      return new Response(JSON.stringify(feed, null, 2), {
+        headers: {
+          'content-type': 'application/feed+json; charset=utf-8',
           'cache-control': `max-age=${oneDayInSeconds}, public`,
         },
       });
@@ -149,7 +297,7 @@ const routes: Routes = {
       try {
         const fullFilePath = `public/${filePath}`;
 
-        const fileExtension = filePath.split('.').pop()?.toLowerCase();
+        const fileExtension = filePath!.split('.').pop()?.toLowerCase();
 
         if (fileExtension === 'ts') {
           return serveFileWithTs(request, fullFilePath);
@@ -176,6 +324,8 @@ const routes: Routes = {
   oauthGithubCallback: createPageRouteHandler('oauthGithubCallback', '/oauth/github/callback'),
   fillAForm: createPageRouteHandler('fillAForm', '/fill-a-form'),
   file: createPageRouteHandler('file', '/file/:filePath*'),
+  blog: createPageRouteHandler('blog', '/blog'),
+  blogArticle: createPageRouteHandler('blogArticle', '/blog/:slug'),
 };
 
 export default routes;

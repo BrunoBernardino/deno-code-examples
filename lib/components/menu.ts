@@ -12,6 +12,16 @@ export default function menu(
     'inline-block w-full py-2 px-2 hover:decoration-sky-700 hover:underline transition-all hover:bg-slate-900 rounded-sm';
   const commonActiveMenuLinkClasses = 'font-bold active bg-slate-900';
 
+  const blogMenuItem = html`
+    <li class="${commonMenuItemClasses} ${commonNonFirstMenuItemClasses}">
+      <a href="/blog" class="${commonMenuLinkClasses} ${
+    currentPath.startsWith('/blog') ? commonActiveMenuLinkClasses : ''
+  }">
+        Blog
+      </a>
+    </li>
+  `;
+
   const loggedInMenuOptions = html`
     <li class="${commonMenuItemClasses}">
       <a href="/dashboard" class="${commonMenuLinkClasses} ${
@@ -33,6 +43,7 @@ export default function menu(
     `
       : ''
   }
+    ${blogMenuItem}
     <li class="${commonMenuItemClasses} ${commonNonFirstMenuItemClasses}">
       <a href="/logout" class="${commonMenuLinkClasses}">
         Logout
@@ -46,6 +57,7 @@ export default function menu(
         Login
       </a>
     </li>
+    ${blogMenuItem}
   `;
 
   return html`
