@@ -1,6 +1,6 @@
 import { serveFile } from 'std/http/file_server.ts';
 import { parse } from 'std/datetime/mod.ts';
-import { renderMarkdown } from 'https://deno.land/x/markdown_renderer@0.1.3/mod.ts';
+import { render } from 'https://deno.land/x/gfm@0.2.5/mod.ts';
 
 import {
   baseUrl,
@@ -15,7 +15,7 @@ import {
 import { getDataFromRequest } from '/lib/auth.ts';
 import { Page } from '/lib/page.ts';
 
-// NOTE: This won't be necessary once https://github.com/denoland/deploy_feedback/issues/1 is closed
+// NOTE: This won't be necessary once https://github.com/denoland/deploy_feedback/issues/433 is closed
 import indexPage from '/pages/index.ts';
 import dashboardPage from '/pages/dashboard.ts';
 import logoutPage from '/pages/logout.ts';
@@ -57,12 +57,12 @@ function createPageRouteHandler(id: keyof typeof pages, pathname: string) {
     pattern: new URLPattern({ pathname }),
     handler: async (request: Request, match: URLPatternResult) => {
       try {
-        // NOTE: Use this instead once https://github.com/denoland/deploy_feedback/issues/1 is closed
+        // NOTE: Use this instead once https://github.com/denoland/deploy_feedback/issues/433 is closed
         // const page = await import(`/pages/${id}.ts`);
 
-        const page = pages[id];
+        const page: Page = pages[id];
 
-        const { get, post, patch, delete: deleteAction } = page as Page;
+        const { get, post, patch, delete: deleteAction } = page;
 
         const { user, session, tokenData } = (await getDataFromRequest(request)) || {};
 
@@ -105,6 +105,8 @@ function createPageRouteHandler(id: keyof typeof pages, pathname: string) {
   };
 }
 
+const oneDayInSeconds = 24 * 60 * 60;
+
 const routes: Routes = {
   sitemap: {
     pattern: new URLPattern({ pathname: '/sitemap.xml' }),
@@ -144,8 +146,6 @@ const routes: Routes = {
 </urlset>
 `;
 
-      const oneDayInSeconds = 24 * 60 * 60;
-
       return new Response(sitemapContent, {
         headers: {
           'content-type': 'application/xml; charset=utf-8',
@@ -178,7 +178,7 @@ const routes: Routes = {
 			<guid>${baseUrl}/blog/${article.slug}</guid>
 			<pubDate>${buildRFC822Date(article.date)}</pubDate>
 			<description>
-				<![CDATA[${renderMarkdown(article.description)}]]>
+				<![CDATA[${render(article.description)}]]>
 			</description>
 		</item>
   `).join('')
@@ -186,8 +186,6 @@ const routes: Routes = {
 </channel>
 </rss>
 `;
-
-      const oneDayInSeconds = 24 * 60 * 60;
 
       return new Response(feedContent, {
         headers: {
@@ -224,15 +222,13 @@ const routes: Routes = {
 			<link href="${baseUrl}/blog/${article.slug}" />
 			<updated>${parse(article.date, 'yyyy-MM-dd').toISOString()}</updated>
 			<content type="html">
-				<![CDATA[${renderMarkdown(article.description)}]]>
+				<![CDATA[${render(article.description)}]]>
 			</content>
 		</entry>
   `).join('')
       }
 </feed>
 `;
-
-      const oneDayInSeconds = 24 * 60 * 60;
 
       return new Response(feedContent, {
         headers: {
@@ -260,14 +256,12 @@ const routes: Routes = {
           url: `${baseUrl}/blog/${article.slug}`,
           title: article.title,
           content_text: article.description,
-          content_html: renderMarkdown(article.description),
+          content_html: render(article.description),
           summary: article.subtitle,
           date_modified: parse(article.date, 'yyyy-MM-dd').toISOString(),
           date_published: parse(article.date, 'yyyy-MM-dd').toISOString(),
         })),
       };
-
-      const oneDayInSeconds = 24 * 60 * 60;
 
       return new Response(JSON.stringify(feed, null, 2), {
         headers: {
@@ -277,21 +271,25 @@ const routes: Routes = {
       });
     },
   },
-  favicon: {
-    pattern: new URLPattern({ pathname: '/favicon.ico' }),
-    handler: (request) => {
-      return serveFile(request, 'public/images/favicon.ico');
-    },
-  },
   robots: {
     pattern: new URLPattern({ pathname: '/robots.txt' }),
-    handler: (request) => {
-      return serveFile(request, 'public/robots.txt');
+    handler: async (request) => {
+      const response = await serveFile(request, `public/robots.txt`);
+      response.headers.set('cache-control', `max-age=${oneDayInSeconds}, public`);
+      return response;
+    },
+  },
+  favicon: {
+    pattern: new URLPattern({ pathname: '/favicon.ico' }),
+    handler: async (request) => {
+      const response = await serveFile(request, `public/images/favicon.ico`);
+      response.headers.set('cache-control', `max-age=${oneDayInSeconds}, public`);
+      return response;
     },
   },
   public: {
     pattern: new URLPattern({ pathname: '/public/:filePath*' }),
-    handler: (request, match) => {
+    handler: async (request, match) => {
       const { filePath } = match.pathname.groups;
 
       try {
@@ -299,13 +297,18 @@ const routes: Routes = {
 
         const fileExtension = filePath!.split('.').pop()?.toLowerCase();
 
+        let response: Response;
+
         if (fileExtension === 'ts') {
-          return serveFileWithTs(request, fullFilePath);
+          response = await serveFileWithTs(request, fullFilePath);
         } else if (fileExtension === 'scss') {
-          return serveFileWithSass(request, fullFilePath);
+          response = await serveFileWithSass(request, fullFilePath);
         } else {
-          return serveFile(request, fullFilePath);
+          response = await serveFile(request, `public/${filePath}`);
         }
+
+        response.headers.set('cache-control', `max-age=${oneDayInSeconds}, public`);
+        return response;
       } catch (error) {
         if (error.toString().includes('NotFound')) {
           return new Response('Not Found', { status: 404 });

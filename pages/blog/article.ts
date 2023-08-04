@@ -1,5 +1,5 @@
 import { parse } from 'std/datetime/mod.ts';
-import { renderMarkdown } from 'https://deno.land/x/markdown_renderer@0.1.3/mod.ts';
+import { render } from 'https://deno.land/x/gfm@0.2.5/mod.ts';
 
 import { basicLayoutResponse, formatDate, getAllBlogArticles, html, isRunningLocally } from '/lib/utils.ts';
 import page, { RequestHandlerParams } from '/lib/page.ts';
@@ -19,7 +19,7 @@ function get({ match, user, session }: RequestHandlerParams) {
     throw new Error('NotFound: Article not found');
   }
 
-  const descriptionHtml = renderMarkdown(article.description, { allowedTags: ['img'] });
+  const descriptionHtml = render(article.description);
 
   const htmlContent = html`
     <section class="page">
