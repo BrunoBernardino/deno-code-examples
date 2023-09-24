@@ -71,7 +71,7 @@ function renderFilledFormsHtml(filledForms: FilledForm[], newFilledFormId = '') 
     return html`<tr>
       <td>${form.id.substring(0, 4)}${justCreatedHtml}</td>
       <td>${new Date(form.date).toLocaleDateString('en-GB', { dateStyle: 'medium' })}</td>
-      <td class="text-right"><a href="/file/${form.url}" title="Download">↡</a></td>
+      <td class="text-right"><a href="/file/${form.url}" title="Download"><img src="/public/images/download.svg" alt="Download" class="svg-icon" /></a></td>
     </tr>`;
   }).join('\n');
 

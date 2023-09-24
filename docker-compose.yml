@@ -16,14 +16,13 @@ services:
         hard: -1
 
   redis:
-    image: redis:7.0.11
+    image: redis:7
     environment:
       - REDIS_REPLICATION_MODE=master
       - REDIS_USERNAME=default
       - REDIS_PASSWORD=fake
       - REDIS_NAME=deno
     restart: on-failure
-    # command: redis-server --name "$REDIS_NAME" -d redis sh -c 'exec redis-server --requirepass "$REDIS_PASSWORD"'
     volumes:
       - redisdata:/var/lib/redis
     ports:
