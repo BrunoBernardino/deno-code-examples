@@ -20,7 +20,7 @@ async function get({ match, user }: RequestHandlerParams) {
     }
   }
 
-  const signedFileUrl = getSignedFileUrl(filePath);
+  const signedFileUrl = await getSignedFileUrl(filePath);
 
   const fileResponse = await fetch(signedFileUrl);
 

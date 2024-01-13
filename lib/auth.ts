@@ -1,4 +1,4 @@
-import { decode as base64Decode, encode as base64Encode } from 'std/encoding/base64url.ts';
+import { decodeBase64Url, encodeBase64Url } from 'std/encoding/base64url.ts';
 import { Cookie, getCookies, setCookie } from 'std/http/cookie.ts';
 import 'std/dotenv/load.ts';
 
@@ -27,9 +27,11 @@ const generateKey = async (key: string) =>
   await crypto.subtle.importKey('raw', textToData(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 
 async function signAuthJwt(key: CryptoKey, data: JwtData) {
-  const payload = base64Encode(textToData(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))) + '.' +
-    base64Encode(textToData(JSON.stringify(data) || ''));
-  const signature = base64Encode(new Uint8Array(await crypto.subtle.sign({ name: 'HMAC' }, key, textToData(payload))));
+  const payload = encodeBase64Url(textToData(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))) + '.' +
+    encodeBase64Url(textToData(JSON.stringify(data) || ''));
+  const signature = encodeBase64Url(
+    new Uint8Array(await crypto.subtle.sign({ name: 'HMAC' }, key, textToData(payload))),
+  );
   return `${payload}.${signature}`;
 }
 
@@ -40,8 +42,8 @@ async function verifyAuthJwt(key: CryptoKey, jwt: string) {
   }
 
   const data = textToData(jwtParts[0] + '.' + jwtParts[1]);
-  if (await crypto.subtle.verify({ name: 'HMAC' }, key, base64Decode(jwtParts[2]), data) === true) {
-    return JSON.parse(dataToText(base64Decode(jwtParts[1]))) as JwtData;
+  if (await crypto.subtle.verify({ name: 'HMAC' }, key, decodeBase64Url(jwtParts[2]), data) === true) {
+    return JSON.parse(dataToText(decodeBase64Url(jwtParts[1]))) as JwtData;
   }
 
   throw new Error('Invalid JWT');

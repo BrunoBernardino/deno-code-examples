@@ -1,4 +1,4 @@
-import { decode as base64Decode } from 'std/encoding/base64url.ts';
+import { decodeBase64Url } from 'std/encoding/base64url.ts';
 import 'std/dotenv/load.ts';
 
 import { baseUrl, isRunningLocally, PORT } from '/lib/utils.ts';
@@ -81,7 +81,7 @@ function decodeGoogleJwt(jwt: string) {
     throw new Error('Malformed JWT');
   }
 
-  return JSON.parse(dataToText(base64Decode(jwtParts[1]))) as GoogleJwtIdToken;
+  return JSON.parse(dataToText(decodeBase64Url(jwtParts[1]))) as GoogleJwtIdToken;
 }
 
 function parseGoogleOauthState(state: string) {

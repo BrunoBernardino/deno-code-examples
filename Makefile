@@ -1,6 +1,6 @@
 .PHONY: start
 start:
-	deno run --watch --allow-net --allow-read --allow-env main.ts
+	deno run --watch --allow-net --allow-read --allow-env --allow-write main.ts
 
 .PHONY: format
 format:
@@ -14,7 +14,7 @@ test:
 
 .PHONY: build-tailwind
 build-tailwind:
-	deno run --allow-env --allow-read --allow-sys --allow-write=public/css npm:tailwindcss@3.3.3 -i ./public/css/tailwind-input.css -o ./public/css/tailwind.css
+	deno run --allow-env --allow-read --allow-sys --allow-write=public/css npm:tailwindcss@3.4.1 -i ./public/css/tailwind-input.css -o ./public/css/tailwind.css
 
 .PHONY: migrate-db
 migrate-db:

@@ -1,4 +1,4 @@
-import { encode as base64Encode } from 'std/encoding/base64.ts';
+import { encodeBase64 } from 'std/encoding/base64.ts';
 
 import { addTextToForm } from '/lib/pdf-utils.ts';
 import { uploadUserFile } from '/lib/providers/aws.ts';
@@ -66,7 +66,7 @@ async function fillFormSaveAndEmail(
   const attachments = [{
     Name: `${id.substring(0, 4)}-filled-form.pdf`,
     ContentType: 'application/pdf',
-    Content: base64Encode(filledFormContents),
+    Content: encodeBase64(filledFormContents),
   }];
 
   await sendFilledFormEmail(match, user, attachments);

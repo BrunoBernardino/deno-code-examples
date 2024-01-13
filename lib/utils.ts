@@ -1,5 +1,5 @@
 import 'std/dotenv/load.ts';
-import { emit } from 'https://deno.land/x/emit@0.10.0/mod.ts';
+import { transpile } from 'https://deno.land/x/emit@0.33.0/mod.ts';
 import sass from 'https://deno.land/x/denosass@1.0.6/mod.ts';
 import { serveFile } from 'std/http/file_server.ts';
 import { extract } from 'std/front_matter/any.ts';
@@ -102,12 +102,12 @@ export function isRunningLocally(urlPatternResult: URLPatternResult) {
 
 export function escapeHtml(unsafe: string) {
   return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
-    .replaceAll('\'', '&#039;');
+    .replaceAll("'", '&#039;');
 }
 
 async function transpileTs(content: string, specifier: URL) {
   const urlStr = specifier.toString();
-  const result = await emit(specifier, {
+  const result = await transpile(specifier, {
     load(specifier: string) {
       if (specifier !== urlStr) {
         return Promise.resolve({ kind: 'module', specifier, content: '' });
@@ -115,7 +115,7 @@ async function transpileTs(content: string, specifier: URL) {
       return Promise.resolve({ kind: 'module', specifier, content });
     },
   });
-  return result[urlStr];
+  return result.get(urlStr) || '';
 }
 
 export async function serveFileWithTs(request: Request, filePath: string, extraHeaders?: ResponseInit['headers']) {
